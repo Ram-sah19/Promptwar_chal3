@@ -1150,3 +1150,68 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// ==========================================================================
+// TEST SUITE FOR CALCULATIONS & STATE (RUN IN CONSOLE VIA runCalculationsTests())
+// ==========================================================================
+window.runCalculationsTests = function() {
+  console.log("%c=== STARTING ECOPULSE TEST SUITE ===", "font-weight: bold; font-size: 1.1rem; color: hsl(190, 90%, 50%);");
+  let passed = 0;
+  let failed = 0;
+
+  function assert(condition, message) {
+    if (condition) {
+      console.log(`%c[PASS] ${message}`, "color: #10b981; font-weight: bold;");
+      passed++;
+    } else {
+      console.error(`[FAIL] ${message}`);
+      failed++;
+    }
+  }
+
+  try {
+    // Save original state
+    const originalInputs = JSON.parse(JSON.stringify(state.inputs));
+
+    // Test 1: Baseline Transport Calculation (Petrol, no public transit/flights)
+    state.inputs.car_distance = 100;
+    state.inputs.vehicle_type = 1; // Petrol (0.40 kg/mi) -> 100 * 52 * 0.4 = 2080 kg = 2.08 t
+    state.inputs.public_transit = 0;
+    state.inputs.flights = 0;
+    state.inputs.electricity = 0;
+    state.inputs.gas_heating = 0;
+    state.inputs.diet_type = 5; // Vegan (0.9 t)
+    state.inputs.food_waste = 2; // Average (1.0 mult) -> 0.9 t
+    state.inputs.trash_bags = 0;
+
+    calculateEmissions(false);
+    assert(state.emissions.transport === 2.08, `Transport emission correct: expected 2.08t, got ${state.emissions.transport}t`);
+    assert(state.emissions.food === 0.90, `Food emission correct (Vegan): expected 0.9t, got ${state.emissions.food}t`);
+    assert(state.emissions.total === 2.98, `Total carbon footprint calculation correct: expected 2.98t, got ${state.emissions.total}t`);
+
+    // Test 2: Clean Energy Deduction (100% clean should reduce electricity emissions to 0)
+    state.inputs.electricity = 100; // Monthly electricity bill
+    state.inputs.clean_energy = 100; // 100% Clean
+    calculateEmissions(false);
+    // Since clean energy is 100%, electricity output in emissions should be 0 (total energy = gas only = 0)
+    assert(state.emissions.energy === 0.0, `100% clean energy sets electricity emissions to 0: got ${state.emissions.energy}t`);
+
+    // Test 3: Log Streak Logic
+    state.lastLogDate = null;
+    state.streak = 0;
+    updateLogStreak("2026-06-15");
+    assert(state.streak === 1, `First log sets streak to 1: got ${state.streak}`);
+    updateLogStreak("2026-06-16");
+    assert(state.streak === 2, `Consecutive day increments streak: got ${state.streak}`);
+    updateLogStreak("2026-06-18");
+    assert(state.streak === 1, `Broken streak (skipped 17th) resets to 1: got ${state.streak}`);
+
+    // Restore inputs
+    state.inputs = originalInputs;
+    calculateEmissions(false);
+    console.log(`%c=== ECOPULSE TEST SUITE COMPLETE: ${passed} passed, ${failed} failed ===`, "font-weight: bold; color: hsl(162, 84%, 40%);");
+  } catch (error) {
+    console.error("Test Suite execution crashed:", error);
+  }
+};
+
