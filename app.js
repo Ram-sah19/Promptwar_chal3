@@ -27,7 +27,6 @@ const FACTORS = Object.freeze({
   })
 });
 
-// Diet values (Tons CO2e per year directly)
 const DIET_FACTORS = Object.freeze({
   1: 3.3, // Heavy Meat
   2: 2.5, // Average Meat
@@ -49,7 +48,7 @@ const DEFAULT_CHALLENGES = Object.freeze([
     title: "Meatless Mondays",
     description: "Eat entirely plant-based meals every Monday for a month.",
     category: "diet",
-    impact: 120, // kg CO2 saved per year
+    impact: 120,
     xp: 150,
     completed: false
   }),
@@ -100,7 +99,7 @@ const DEFAULT_CHALLENGES = Object.freeze([
   })
 ]);
 
-// DEFINE BADGES / ACHIEVEMENTS
+// DEFINE BADGES
 const BADGES = Object.freeze([
   Object.freeze({
     id: "first_log",
@@ -149,6 +148,7 @@ const BADGES = Object.freeze([
 // APPLICATION STATE
 let state = {
   inputs: {
+    personal_target: 2.0,
     car_distance: 50,
     vehicle_type: 1,
     public_transit: 10,
@@ -178,7 +178,7 @@ let state = {
 };
 
 // ==========================================================================
-// DOM HELPER FUNCTIONS (FOR SECURITY & ROBUSTNESS)
+// DOM HELPER & SECURITY SANITIZATION FUNCTIONS
 // ==========================================================================
 
 function clearContainer(container) {
@@ -202,6 +202,15 @@ function createIcon(iconClass) {
   return icon;
 }
 
+function escapeHTML(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // ==========================================================================
 // INITIALIZATION & EVENT LISTENERS
 // ==========================================================================
@@ -213,11 +222,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initChallengeFilters();
   initCustomChallengeForm();
   
-  // Connect Go to Actions link
   const goToActionsBtn = document.getElementById("go-to-actions");
   if (goToActionsBtn) {
     goToActionsBtn.addEventListener("click", () => switchTab("actions-panel"));
-    // Keyboard support
     goToActionsBtn.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
@@ -226,14 +233,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Connect Save & Export logs buttons
   const saveLogBtn = document.getElementById("btn-save-log");
   if (saveLogBtn) saveLogBtn.addEventListener("click", saveHabitsLog);
 
   const exportReportBtn = document.getElementById("btn-export-report");
   if (exportReportBtn) exportReportBtn.addEventListener("click", exportCarbonReport);
 
-  // Initial Calculation & Render
   calculateEmissions(true);
   renderDashboard();
 });
@@ -248,7 +253,6 @@ function initNavigation() {
     });
   });
 
-  // Slider Category Tabs
   const calcTabs = document.querySelectorAll(".calc-section-tab");
   calcTabs.forEach(tab => {
     tab.addEventListener("click", () => {
@@ -268,10 +272,13 @@ function initNavigation() {
 function switchTab(targetId) {
   const tabs = document.querySelectorAll(".nav-tab");
   tabs.forEach(t => {
-    if (t.getAttribute("data-target") === targetId) {
+    const tabTarget = t.getAttribute("data-target");
+    if (tabTarget === targetId) {
       t.classList.add("active");
+      t.setAttribute("aria-selected", "true");
     } else {
       t.classList.remove("active");
+      t.setAttribute("aria-selected", "false");
     }
   });
 
@@ -292,6 +299,7 @@ function switchTab(targetId) {
 // Sliders Config & Sanitized Input Listeners
 function initSliders() {
   const slidersConfig = [
+    { id: "slider-personal-target", valId: "val-personal-target", suffix: " Tons", key: "personal_target", min: 1.0, max: 15.0, parse: parseFloat },
     { id: "slider-drive-distance", valId: "val-drive-distance", suffix: " miles", key: "car_distance", min: 0, max: 500 },
     { 
       id: "slider-vehicle-type", 
@@ -350,7 +358,6 @@ function initSliders() {
     const valDisplay = document.getElementById(cfg.valId);
     if (!el || !valDisplay) return;
 
-    // Load initial
     el.value = state.inputs[cfg.key];
 
     const updateDisplay = (val) => {
@@ -365,18 +372,20 @@ function initSliders() {
 
     updateDisplay(el.value);
 
-    // Input handlers with strict sanitization constraints
     el.addEventListener("input", (e) => {
-      let rawVal = parseInt(e.target.value, 10);
+      let rawVal = cfg.parse ? cfg.parse(e.target.value) : parseInt(e.target.value, 10);
       if (isNaN(rawVal)) rawVal = cfg.min;
       
-      // Clamp boundaries
       const sanitizedVal = Math.max(cfg.min, Math.min(cfg.max, rawVal));
       state.inputs[cfg.key] = sanitizedVal;
       
       updateDisplay(sanitizedVal);
       calculateEmissions(false);
       renderLiveEstimator();
+      
+      if (cfg.key === "personal_target") {
+        renderDashboard(); 
+      }
     });
   });
 }
@@ -407,8 +416,7 @@ function initCustomChallengeForm() {
 
     if (!titleEl || !categoryEl || !impactEl) return;
 
-    // Sanitize string content by stripping HTML tags
-    const titleVal = titleEl.value.replace(/<\/?[^>]+(>|$)/g, "").trim();
+    const titleVal = escapeHTML(titleEl.value.trim());
     const categoryVal = categoryEl.value.trim();
     const impactVal = parseInt(impactEl.value, 10);
 
@@ -430,14 +438,12 @@ function initCustomChallengeForm() {
 
     state.challenges.push(newChallenge);
 
-    // Reset inputs
     titleEl.value = "";
     impactEl.value = "";
 
     showToast(`Custom habit "${titleVal}" activated successfully!`);
     saveState();
 
-    // Re-render challenges grid
     const activeFilter = document.querySelector(".filter-btn.active");
     const filterCat = activeFilter ? (activeFilter.getAttribute("data-filter") || "all") : "all";
     renderChallenges(filterCat);
@@ -452,14 +458,12 @@ function initCustomChallengeForm() {
 function calculateEmissions(saveToHistory = false) {
   const inputs = state.inputs;
 
-  // 1. TRANSPORT
   const carFactor = FACTORS.CAR_FUEL[inputs.vehicle_type] || 0.40;
   const annualCarEmissions = inputs.car_distance * 52 * carFactor;
   const annualTransitEmissions = inputs.public_transit * 52 * FACTORS.PUBLIC_TRANSIT;
   const annualFlightEmissions = inputs.flights * FACTORS.FLIGHT;
   const transportTons = (annualCarEmissions + annualTransitEmissions + annualFlightEmissions) / 1000;
 
-  // 2. ENERGY
   const annualElectricityKWh = (inputs.electricity / FACTORS.ELECTRICITY_RATE) * 12;
   const cleanEnergyDeduction = inputs.clean_energy / 100.0;
   const electricityTons = (annualElectricityKWh * (1 - cleanEnergyDeduction) * FACTORS.ELECTRICITY_CO2) / 1000;
@@ -468,12 +472,10 @@ function calculateEmissions(saveToHistory = false) {
   const gasTons = (annualGasTherms * FACTORS.GAS_CO2) / 1000;
   const energyTons = electricityTons + gasTons;
 
-  // 3. DIET
   const baseDietTons = DIET_FACTORS[inputs.diet_type] || 2.5;
   const wasteMult = FOOD_WASTE_FACTORS[inputs.food_waste] || 1.0;
   const foodTons = baseDietTons * wasteMult;
 
-  // 4. WASTE
   const wasteBagsKg = inputs.trash_bags * FACTORS.TRASH_BAG;
   const recycleMult = FACTORS.RECYCLE_MULT[inputs.recycle_rate] || 1.0;
   const wasteTons = (wasteBagsKg * recycleMult) / 1000;
@@ -496,7 +498,7 @@ function renderDashboard() {
   
   const circle = document.getElementById("footprint-circle-progress");
   if (circle) {
-    const maxVal = 16.0;
+    const maxVal = state.inputs.personal_target || 2.0;
     const progressPercent = Math.min(state.emissions.total / maxVal, 1.0);
     const strokeDashoffset = 628 - (628 * progressPercent);
     circle.style.strokeDashoffset = String(strokeDashoffset);
@@ -505,14 +507,15 @@ function renderDashboard() {
   const ratingBadge = document.getElementById("footprint-rating");
   if (ratingBadge) {
     ratingBadge.className = "metric-rating-badge";
-    if (state.emissions.total <= 4.0) {
-      ratingBadge.textContent = "Eco Friendly";
+    const targetVal = state.inputs.personal_target || 2.0;
+    if (state.emissions.total <= targetVal) {
+      ratingBadge.textContent = "On Target";
       ratingBadge.classList.add("rating-low");
-    } else if (state.emissions.total <= 10.0) {
+    } else if (state.emissions.total <= targetVal * 1.5) {
       ratingBadge.textContent = "Moderate";
       ratingBadge.classList.add("rating-medium");
     } else {
-      ratingBadge.textContent = "High Footprint";
+      ratingBadge.textContent = "Over Limit";
       ratingBadge.classList.add("rating-high");
     }
   }
@@ -545,11 +548,11 @@ function renderLiveEstimator() {
   const emojiWrap = document.getElementById("estimator-emoji");
   if (emojiWrap) {
     clearContainer(emojiWrap);
-    if (state.emissions.total <= 4.0) {
+    if (state.emissions.total <= state.inputs.personal_target) {
       const icon = createIcon("fa-tree");
       icon.style.color = "hsl(152, 69%, 43%)";
       emojiWrap.appendChild(icon);
-    } else if (state.emissions.total <= 10.0) {
+    } else if (state.emissions.total <= state.inputs.personal_target * 1.5) {
       const icon = createIcon("fa-cloud-sun");
       icon.style.color = "hsl(42, 100%, 53%)";
       emojiWrap.appendChild(icon);
@@ -582,11 +585,8 @@ function renderChallenges(categoryFilter = "all") {
 
   filtered.forEach(c => {
     const card = createElement("div", "card challenge-card");
-    
-    // Header Wrapper
     const header = createElement("div", "challenge-header");
     
-    // Badge
     const categoryBadge = createElement("span", "challenge-badge-eco");
     const icons = { transport: "fa-car", energy: "fa-bolt", diet: "fa-utensils", waste: "fa-trash-can" };
     const iconClass = icons[c.category] || "fa-leaf";
@@ -594,7 +594,6 @@ function renderChallenges(categoryFilter = "all") {
     categoryBadge.appendChild(badgeIcon);
     categoryBadge.appendChild(document.createTextNode(` ${c.category}`));
     
-    // Impact Weight
     const impactBadge = createElement("span", "challenge-impact-badge");
     impactBadge.title = "Carbon savings per year";
     const cloudIcon = createIcon("fa-cloud-arrow-down");
@@ -604,23 +603,18 @@ function renderChallenges(categoryFilter = "all") {
     header.appendChild(categoryBadge);
     header.appendChild(impactBadge);
 
-    // Details elements
     const heading = createElement("h3", "", c.title);
     heading.style.marginBottom = "var(--space-xs)";
     heading.style.fontSize = "1.1rem";
 
     const desc = createElement("p", "challenge-description", c.description);
-
-    // Footer Wrapper
     const footer = createElement("div", "challenge-footer");
     
-    // Reward
     const reward = createElement("span", "challenge-reward");
     const starIcon = createIcon("fa-star");
     reward.appendChild(starIcon);
     reward.appendChild(document.createTextNode(` +${c.xp} XP`));
 
-    // Complete Action Button
     const btn = createElement("button", `btn-action ${c.completed ? 'completed' : ''}`);
     btn.type = "button";
     
@@ -671,7 +665,6 @@ function renderBadges() {
 }
 
 function renderInsights() {
-  // Update Benchmark Comparison Numbers
   const userValEl = document.getElementById("compare-user-val");
   if (userValEl) userValEl.textContent = `${state.emissions.total.toFixed(1)} Tons`;
   
@@ -680,6 +673,17 @@ function renderInsights() {
     const maxBenchmarkVal = 20.0;
     const userWidth = Math.min((state.emissions.total / maxBenchmarkVal) * 100, 100);
     userBarEl.style.width = `${userWidth}%`;
+  }
+
+  // Target Goal Bar comparison
+  const targetValEl = document.getElementById("compare-target-val");
+  if (targetValEl) targetValEl.textContent = `${state.inputs.personal_target.toFixed(1)} Tons`;
+
+  const targetBarEl = document.getElementById("compare-target-bar");
+  if (targetBarEl) {
+    const maxBenchmarkVal = 20.0;
+    const targetWidth = Math.min((state.inputs.personal_target / maxBenchmarkVal) * 100, 100);
+    targetBarEl.style.width = `${targetWidth}%`;
   }
 
   const container = document.getElementById("insights-container");
@@ -699,10 +703,9 @@ function renderInsights() {
 
   let recommendations = [];
 
-  // Personalized insights using values in calculations directly
   if (highest.name === "transport") {
     const commMiles = state.inputs.car_distance;
-    const offset = Math.round(commMiles * 0.2 * 52 * FACTORS.CAR_FUEL[1]); // 20% savings
+    const offset = Math.round(commMiles * 0.2 * 52 * FACTORS.CAR_FUEL[1]);
     recommendations = [
       {
         type: "warning",
@@ -779,10 +782,11 @@ function renderInsights() {
     ];
   }
 
+  const userTarget = state.inputs.personal_target || 2.0;
   recommendations.push({
     type: "achievement",
-    headline: "Target: 2.0 Tons CO₂e Goal",
-    desc: "To align with the Paris Agreement targets, aim for a personal baseline of 2.0 Tons. Focus on your top category first!"
+    headline: `Personal Annual Target: ${userTarget.toFixed(1)} Tons`,
+    desc: `Your personal annual target limit is set to ${userTarget.toFixed(1)} Tons CO₂e. Keep tracking inputs to stay under this limit!`
   });
 
   recommendations.forEach(rec => {
@@ -834,7 +838,6 @@ function renderDailyQuests() {
     item.tabIndex = 0;
     item.title = "Click to log action immediately";
     
-    // Keyboard select
     const performLog = () => completeChallenge(c.id);
     item.addEventListener("click", performLog);
     item.addEventListener("keydown", (e) => {
@@ -1088,7 +1091,6 @@ function checkBadges() {
   }
 }
 
-// Export Report Utility (aligning with problem statement tracking parameters)
 function exportCarbonReport() {
   const inputs = state.inputs;
   const ems = state.emissions;
@@ -1107,6 +1109,7 @@ Diet & Food:     ${ems.food.toFixed(2)} Tons
 Waste & Recycle: ${ems.waste.toFixed(2)} Tons
 ------------------------------------------------
 TOTAL FOOTPRINT: ${ems.total.toFixed(2)} Tons CO2e/year
+TARGET LIMIT:    ${inputs.personal_target.toFixed(2)} Tons CO2e/year
 
 2. HOUSEHOLD HABITS METRICS
 ------------------------------------------------
@@ -1163,7 +1166,6 @@ function saveState() {
 
 function loadState() {
   try {
-    // Standardize baseline challenges list
     state.challenges = JSON.parse(JSON.stringify(DEFAULT_CHALLENGES));
 
     const raw = localStorage.getItem("ecopulse_state");
@@ -1179,15 +1181,12 @@ function loadState() {
         state.unlockedBadges = parsed.unlockedBadges || [];
         state.history = parsed.history || [];
         
-        // Merge challenges
         if (parsed.challenges) {
           parsed.challenges.forEach(pc => {
-            // Find in current challenges (handles standard and custom ones)
             const matching = state.challenges.find(c => c.id === pc.id);
             if (matching) {
               matching.completed = pc.completed;
             } else if (pc.id && pc.id.startsWith("custom_")) {
-              // Restore custom challenges
               state.challenges.push(pc);
             }
           });
@@ -1327,7 +1326,6 @@ function showAchievementModal(badge) {
   document.body.appendChild(overlay);
 }
 
-// Add simple CSS animation keyframe for fading out
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
   @keyframes fadeOut {
@@ -1360,13 +1358,13 @@ window.runCalculationsTests = function() {
 
     // Test 1: Baseline Transport Calculation (Petrol, no public transit/flights)
     state.inputs.car_distance = 100;
-    state.inputs.vehicle_type = 1; // Petrol (0.40 kg/mi) -> 100 * 52 * 0.4 = 2080 kg = 2.08 t
+    state.inputs.vehicle_type = 1;
     state.inputs.public_transit = 0;
     state.inputs.flights = 0;
     state.inputs.electricity = 0;
     state.inputs.gas_heating = 0;
-    state.inputs.diet_type = 5; // Vegan (0.9 t)
-    state.inputs.food_waste = 2; // Average (1.0 mult) -> 0.9 t
+    state.inputs.diet_type = 5;
+    state.inputs.food_waste = 2;
     state.inputs.trash_bags = 0;
 
     calculateEmissions(false);

@@ -1,0 +1,16 @@
+{
+  "name": "promptwar-chal3",
+  "version": "1.0.0",
+  "description": "EcoPulse Carbon Footprint Dashboard for Challenge 3",
+  "main": "app.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "carbon-footprint",
+    "tracker",
+    "ecopulse"
+  ],
+  "author": "EcoPulse",
+  "license": "ISC"
+}

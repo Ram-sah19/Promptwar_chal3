@@ -6,8 +6,8 @@
   <meta name="description" content="EcoPulse - Track, understand, and reduce your carbon footprint with custom insights and eco-challenges.">
   <title>EcoPulse | Carbon Footprint Tracker & Reducer</title>
   
-  <!-- FontAwesome for Premium Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FontAwesome for Premium Icons with SRI verification -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Core Stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -22,17 +22,17 @@
         <span class="logo-text">EcoPulse</span>
       </div>
       
-      <nav id="main-nav" aria-label="Main Navigation">
-        <button class="nav-tab active" data-target="overview-panel" id="nav-btn-overview" type="button">
+      <nav id="main-nav" aria-label="Main Navigation" role="tablist">
+        <button class="nav-tab active" data-target="overview-panel" id="nav-btn-overview" type="button" role="tab" aria-selected="true" aria-controls="overview-panel">
           <i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Overview
         </button>
-        <button class="nav-tab" data-target="calculator-panel" id="nav-btn-calculator" type="button">
+        <button class="nav-tab" data-target="calculator-panel" id="nav-btn-calculator" type="button" role="tab" aria-selected="false" aria-controls="calculator-panel">
           <i class="fa-solid fa-calculator" aria-hidden="true"></i> Calculator
         </button>
-        <button class="nav-tab" data-target="actions-panel" id="nav-btn-actions" type="button">
+        <button class="nav-tab" data-target="actions-panel" id="nav-btn-actions" type="button" role="tab" aria-selected="false" aria-controls="actions-panel">
           <i class="fa-solid fa-leaf" aria-hidden="true"></i> Action Center
         </button>
-        <button class="nav-tab" data-target="insights-panel" id="nav-btn-insights" type="button">
+        <button class="nav-tab" data-target="insights-panel" id="nav-btn-insights" type="button" role="tab" aria-selected="false" aria-controls="insights-panel">
           <i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Insights
         </button>
       </nav>
@@ -53,7 +53,7 @@
     <main>
 
       <!-- 1. OVERVIEW PANEL -->
-      <section id="overview-panel" class="panel active dashboard-grid">
+      <section id="overview-panel" class="panel active dashboard-grid" role="tabpanel" aria-labelledby="nav-btn-overview">
         <!-- Main Circular Score Card -->
         <div class="card fontprint-summary-card">
           <h2 class="card-title"><i class="fa-solid fa-earth-americas" aria-hidden="true"></i> Carbon Footprint</h2>
@@ -124,7 +124,7 @@
           <div class="card">
             <div class="side-panel-title">
               <span><i class="fa-solid fa-circle-check" aria-hidden="true" style="color: hsl(42, 100%, 53%);"></i> Daily Quests</span>
-              <span class="side-panel-link" id="go-to-actions" tabindex="0">View All</span>
+              <span class="side-panel-link" id="go-to-actions" tabindex="0" role="button" aria-label="View all active challenges">View All</span>
             </div>
             <div class="activity-list" id="quick-challenges-list">
               <!-- Rendered via JS -->
@@ -142,11 +142,21 @@
       </section>
 
       <!-- 2. CALCULATOR PANEL -->
-      <section id="calculator-panel" class="panel calculator-grid">
+      <section id="calculator-panel" class="panel calculator-grid" role="tabpanel" aria-labelledby="nav-btn-calculator">
         <!-- Input section -->
         <div class="card">
           <h2 class="card-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Adjust Household Habits</h2>
           
+          <!-- Personal Carbon Target Slider -->
+          <div class="calc-slider-group" style="background: hsla(var(--primary-glow)); border: 1px solid hsla(var(--primary), 0.3); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-lg);">
+            <div class="calc-slider-header">
+              <label class="calc-slider-label" for="slider-personal-target" style="font-weight: 700; color: hsl(var(--accent-mint));">My Custom Target Limit</label>
+              <span id="val-personal-target" class="calc-slider-value" style="background: hsla(var(--accent-mint), 0.2); font-weight: 800;">2.0 Tons</span>
+            </div>
+            <input type="range" id="slider-personal-target" min="1.0" max="15.0" step="0.5" value="2.0" aria-label="My Annual Carbon Target Limit in Tons">
+            <div class="calc-slider-description" style="color: hsl(var(--text-primary)); font-size: 0.8rem; opacity: 0.85;">Define your target personal annual carbon footprint to adjust the circular dashboard gauge.</div>
+          </div>
+
           <div class="calc-section-tabs">
             <button class="calc-section-tab active" data-subtarget="calc-transport-sub" type="button">
               <i class="fa-solid fa-car" aria-hidden="true"></i> Transport
@@ -318,7 +328,7 @@
       </section>
 
       <!-- 3. ACTIONS PANEL (ECO-CHALLENGES & BADGES) -->
-      <section id="actions-panel" class="panel dashboard-grid">
+      <section id="actions-panel" class="panel dashboard-grid" role="tabpanel" aria-labelledby="nav-btn-actions">
         <!-- Main Actions List -->
         <div class="card">
           <h2 class="card-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active & Recommended Actions</h2>
@@ -394,7 +404,7 @@
       </section>
 
       <!-- 4. INSIGHTS PANEL -->
-      <section id="insights-panel" class="panel dashboard-grid">
+      <section id="insights-panel" class="panel dashboard-grid" role="tabpanel" aria-labelledby="nav-btn-insights">
         <!-- Relative Averages Graph -->
         <div class="card">
           <h2 class="card-title"><i class="fa-solid fa-chart-bar" aria-hidden="true"></i> Benchmark Comparison</h2>
@@ -433,11 +443,11 @@
 
             <div class="comparison-row">
               <div class="comparison-labels">
-                <span>Paris Accord Climate Goal</span>
-                <span style="color: hsl(var(--accent-mint));">2.0 Tons</span>
+                <span>My Annual Target Goal</span>
+                <span id="compare-target-val" style="color: hsl(var(--accent-mint));">2.0 Tons</span>
               </div>
               <div class="comparison-bar-outer">
-                <div class="comparison-bar-inner comparison-bar-user" style="width: 10%; background: hsl(var(--accent-mint));"></div>
+                <div id="compare-target-bar" class="comparison-bar-inner" style="width: 10%; background: hsl(var(--accent-mint));"></div>
               </div>
             </div>
           </div>
