@@ -18,32 +18,32 @@
     <!-- HEADER & NAVIGATION -->
     <header>
       <div class="logo-container">
-        <span class="logo-icon"><i class="fa-solid fa-seedling"></i></span>
+        <span class="logo-icon"><i class="fa-solid fa-seedling" aria-hidden="true"></i></span>
         <span class="logo-text">EcoPulse</span>
       </div>
       
-      <nav id="main-nav">
-        <button class="nav-tab active" data-target="overview-panel">
-          <i class="fa-solid fa-chart-pie"></i> Overview
+      <nav id="main-nav" aria-label="Main Navigation">
+        <button class="nav-tab active" data-target="overview-panel" id="nav-btn-overview" type="button">
+          <i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Overview
         </button>
-        <button class="nav-tab" data-target="calculator-panel">
-          <i class="fa-solid fa-calculator"></i> Calculator
+        <button class="nav-tab" data-target="calculator-panel" id="nav-btn-calculator" type="button">
+          <i class="fa-solid fa-calculator" aria-hidden="true"></i> Calculator
         </button>
-        <button class="nav-tab" data-target="actions-panel">
-          <i class="fa-solid fa-leaf"></i> Action Center
+        <button class="nav-tab" data-target="actions-panel" id="nav-btn-actions" type="button">
+          <i class="fa-solid fa-leaf" aria-hidden="true"></i> Action Center
         </button>
-        <button class="nav-tab" data-target="insights-panel">
-          <i class="fa-solid fa-lightbulb"></i> Insights
+        <button class="nav-tab" data-target="insights-panel" id="nav-btn-insights" type="button">
+          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Insights
         </button>
       </nav>
       
       <div class="header-stats">
         <div class="streak-badge" title="Daily log streak">
-          <i class="fa-solid fa-fire"></i>
+          <i class="fa-solid fa-fire" aria-hidden="true"></i>
           <span id="streak-count">0</span> Days
         </div>
         <div class="header-score-badge" title="Total Eco Points earned">
-          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star" aria-hidden="true"></i>
           <span id="xp-count">0</span> XP
         </div>
       </div>
@@ -56,10 +56,10 @@
       <section id="overview-panel" class="panel active dashboard-grid">
         <!-- Main Circular Score Card -->
         <div class="card fontprint-summary-card">
-          <h2 class="card-title"><i class="fa-solid fa-earth-americas"></i> Carbon Footprint</h2>
+          <h2 class="card-title"><i class="fa-solid fa-earth-americas" aria-hidden="true"></i> Carbon Footprint</h2>
           <div class="metric-summary-container">
             <div class="metric-circle-outer">
-              <svg class="metric-circle-svg" viewBox="0 0 220 220">
+              <svg class="metric-circle-svg" viewBox="0 0 220 220" aria-label="Carbon Emissions Gauge Chart">
                 <defs>
                   <linearGradient id="eco-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="hsl(162, 84%, 40%)" />
@@ -79,22 +79,22 @@
             <!-- Mini stats grid per category -->
             <div class="category-breakdown-list">
               <div class="category-mini-card" style="border-top: 3px solid hsl(190, 90%, 50%);">
-                <div class="category-mini-icon text-accent-cyan"><i class="fa-solid fa-car"></i></div>
+                <div class="category-mini-icon text-accent-cyan"><i class="fa-solid fa-car" aria-hidden="true"></i></div>
                 <div class="category-mini-title">Transport</div>
                 <div id="mini-val-transport" class="category-mini-val">0.0 t</div>
               </div>
               <div class="category-mini-card" style="border-top: 3px solid hsl(42, 100%, 53%);">
-                <div class="category-mini-icon text-accent-yellow"><i class="fa-solid fa-bolt"></i></div>
+                <div class="category-mini-icon text-accent-yellow"><i class="fa-solid fa-bolt" aria-hidden="true"></i></div>
                 <div class="category-mini-title">Energy</div>
                 <div id="mini-val-energy" class="category-mini-val">0.0 t</div>
               </div>
               <div class="category-mini-card" style="border-top: 3px solid hsl(152, 69%, 43%);">
-                <div class="category-mini-icon text-accent-mint"><i class="fa-solid fa-utensils"></i></div>
+                <div class="category-mini-icon text-accent-mint"><i class="fa-solid fa-utensils" aria-hidden="true"></i></div>
                 <div class="category-mini-title">Food</div>
                 <div id="mini-val-food" class="category-mini-val">0.0 t</div>
               </div>
               <div class="category-mini-card" style="border-top: 3px solid hsl(350, 80%, 55%);">
-                <div class="category-mini-icon text-accent-red"><i class="fa-solid fa-trash-can"></i></div>
+                <div class="category-mini-icon text-accent-red"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></div>
                 <div class="category-mini-title">Waste</div>
                 <div id="mini-val-waste" class="category-mini-val">0.0 t</div>
               </div>
@@ -106,9 +106,9 @@
         <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
           <!-- Trend Graph -->
           <div class="card">
-            <h2 class="card-title"><i class="fa-solid fa-chart-column"></i> Weekly Carbon Trend</h2>
+            <h2 class="card-title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Weekly Carbon Trend</h2>
             <div class="chart-container" id="trend-chart-box">
-              <svg class="chart-svg" id="trend-chart-svg" viewBox="0 0 400 240">
+              <svg class="chart-svg" id="trend-chart-svg" viewBox="0 0 400 240" aria-label="Footprint History Chart">
                 <defs>
                   <linearGradient id="chart-bar-gradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stop-color="hsl(162, 84%, 40%)" stop-opacity="0.8"/>
@@ -123,13 +123,13 @@
           <!-- Active challenges side panel -->
           <div class="card">
             <div class="side-panel-title">
-              <span><i class="fa-solid fa-circle-check" style="color: hsl(42, 100%, 53%);"></i> Daily Quests</span>
-              <span class="side-panel-link" id="go-to-actions">View All</span>
+              <span><i class="fa-solid fa-circle-check" aria-hidden="true" style="color: hsl(42, 100%, 53%);"></i> Daily Quests</span>
+              <span class="side-panel-link" id="go-to-actions" tabindex="0">View All</span>
             </div>
             <div class="activity-list" id="quick-challenges-list">
               <!-- Rendered via JS -->
               <div class="activity-item">
-                <div class="activity-icon-wrap"><i class="fa-solid fa-leaf"></i></div>
+                <div class="activity-icon-wrap"><i class="fa-solid fa-leaf" aria-hidden="true"></i></div>
                 <div class="activity-details">
                   <div class="activity-name">Complete Carbon Calculator</div>
                   <div class="activity-sub">Understand your baseline emissions</div>
@@ -145,20 +145,20 @@
       <section id="calculator-panel" class="panel calculator-grid">
         <!-- Input section -->
         <div class="card">
-          <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Adjust Household Habits</h2>
+          <h2 class="card-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Adjust Household Habits</h2>
           
           <div class="calc-section-tabs">
-            <button class="calc-section-tab active" data-subtarget="calc-transport-sub">
-              <i class="fa-solid fa-car"></i> Transport
+            <button class="calc-section-tab active" data-subtarget="calc-transport-sub" type="button">
+              <i class="fa-solid fa-car" aria-hidden="true"></i> Transport
             </button>
-            <button class="calc-section-tab" data-subtarget="calc-energy-sub">
-              <i class="fa-solid fa-house-chimney"></i> Home Energy
+            <button class="calc-section-tab" data-subtarget="calc-energy-sub" type="button">
+              <i class="fa-solid fa-house-chimney" aria-hidden="true"></i> Home Energy
             </button>
-            <button class="calc-section-tab" data-subtarget="calc-food-sub">
-              <i class="fa-solid fa-egg"></i> Diet & Food
+            <button class="calc-section-tab" data-subtarget="calc-food-sub" type="button">
+              <i class="fa-solid fa-egg" aria-hidden="true"></i> Diet & Food
             </button>
-            <button class="calc-section-tab" data-subtarget="calc-waste-sub">
-              <i class="fa-solid fa-dumpster"></i> Waste
+            <button class="calc-section-tab" data-subtarget="calc-waste-sub" type="button">
+              <i class="fa-solid fa-dumpster" aria-hidden="true"></i> Waste
             </button>
           </div>
 
@@ -170,7 +170,7 @@
                 <label class="calc-slider-label" for="slider-drive-distance">Car Travel (Weekly)</label>
                 <span id="val-drive-distance" class="calc-slider-value">50 miles</span>
               </div>
-              <input type="range" id="slider-drive-distance" min="0" max="500" step="10" value="50">
+              <input type="range" id="slider-drive-distance" min="0" max="500" step="10" value="50" aria-label="Car Travel Weekly Distance">
               <div class="calc-slider-description">Average distance driven per week in personal motor vehicles.</div>
             </div>
 
@@ -179,7 +179,7 @@
                 <label class="calc-slider-label" for="slider-vehicle-type">Vehicle Fuel Type</label>
                 <span id="val-vehicle-type" class="calc-slider-value">Petrol / Diesel</span>
               </div>
-              <input type="range" id="slider-vehicle-type" min="1" max="4" step="1" value="1">
+              <input type="range" id="slider-vehicle-type" min="1" max="4" step="1" value="1" aria-label="Vehicle Fuel Type Category">
               <div class="calc-slider-description">1: Petrol/Diesel, 2: Hybrid, 3: Electric (EV), 4: No Car/Transit Only</div>
             </div>
 
@@ -188,7 +188,7 @@
                 <label class="calc-slider-label" for="slider-public-transit">Public Transit (Weekly)</label>
                 <span id="val-public-transit" class="calc-slider-value">10 miles</span>
               </div>
-              <input type="range" id="slider-public-transit" min="0" max="200" step="5" value="10">
+              <input type="range" id="slider-public-transit" min="0" max="200" step="5" value="10" aria-label="Public Transit Weekly Distance">
               <div class="calc-slider-description">Distance covered on trains, subways, or buses.</div>
             </div>
 
@@ -197,7 +197,7 @@
                 <label class="calc-slider-label" for="slider-flights">Flights taken (Annually)</label>
                 <span id="val-flights" class="calc-slider-value">2 flights</span>
               </div>
-              <input type="range" id="slider-flights" min="0" max="20" step="1" value="2">
+              <input type="range" id="slider-flights" min="0" max="20" step="1" value="2" aria-label="Annual Flights Count">
               <div class="calc-slider-description">Number of short or long-haul round-trip flights per year.</div>
             </div>
           </div>
@@ -209,7 +209,7 @@
                 <label class="calc-slider-label" for="slider-electricity">Electricity Bill (Monthly)</label>
                 <span id="val-electricity" class="calc-slider-value">$60</span>
               </div>
-              <input type="range" id="slider-electricity" min="0" max="300" step="10" value="60">
+              <input type="range" id="slider-electricity" min="0" max="300" step="10" value="60" aria-label="Monthly Electricity Bill">
               <div class="calc-slider-description">Approximate monthly electricity expenditure for your household.</div>
             </div>
 
@@ -218,7 +218,7 @@
                 <label class="calc-slider-label" for="slider-clean-energy">Clean / Renewable Energy Share</label>
                 <span id="val-clean-energy" class="calc-slider-value">0%</span>
               </div>
-              <input type="range" id="slider-clean-energy" min="0" max="100" step="10" value="0">
+              <input type="range" id="slider-clean-energy" min="0" max="100" step="10" value="0" aria-label="Clean Energy Percentage">
               <div class="calc-slider-description">Proportion of your electricity sourced from solar, wind, or green tariffs.</div>
             </div>
 
@@ -227,7 +227,7 @@
                 <label class="calc-slider-label" for="slider-gas-heating">Heating Fuel (Monthly)</label>
                 <span id="val-gas-heating" class="calc-slider-value">$40</span>
               </div>
-              <input type="range" id="slider-gas-heating" min="0" max="250" step="10" value="40">
+              <input type="range" id="slider-gas-heating" min="0" max="250" step="10" value="40" aria-label="Monthly Gas Heating Bill">
               <div class="calc-slider-description">Monthly natural gas, oil, or heating fuel expenses.</div>
             </div>
           </div>
@@ -239,7 +239,7 @@
                 <label class="calc-slider-label" for="slider-diet-type">Primary Diet Type</label>
                 <span id="val-diet-type" class="calc-slider-value">Average Meat Eater</span>
               </div>
-              <input type="range" id="slider-diet-type" min="1" max="5" step="1" value="2">
+              <input type="range" id="slider-diet-type" min="1" max="5" step="1" value="2" aria-label="Diet Preference Category">
               <div class="calc-slider-description">1: Heavy Meat, 2: Average Meat, 3: Low Meat/Fish, 4: Vegetarian, 5: Vegan</div>
             </div>
 
@@ -248,7 +248,7 @@
                 <label class="calc-slider-label" for="slider-waste-food">Food Waste Level</label>
                 <span id="val-waste-food" class="calc-slider-value">Average</span>
               </div>
-              <input type="range" id="slider-waste-food" min="1" max="3" step="1" value="2">
+              <input type="range" id="slider-waste-food" min="1" max="3" step="1" value="2" aria-label="Food Waste Level">
               <div class="calc-slider-description">1: Very Low (use leftovers), 2: Average, 3: High (frequent throwing out)</div>
             </div>
           </div>
@@ -260,7 +260,7 @@
                 <label class="calc-slider-label" for="slider-trash-bags">Trash Generated (Weekly)</label>
                 <span id="val-trash-bags" class="calc-slider-value">2 bags</span>
               </div>
-              <input type="range" id="slider-trash-bags" min="0" max="10" step="1" value="2">
+              <input type="range" id="slider-trash-bags" min="0" max="10" step="1" value="2" aria-label="Weekly Trash Bags Count">
               <div class="calc-slider-description">Number of large standard trash garbage bags filled by household per week.</div>
             </div>
 
@@ -269,7 +269,7 @@
                 <label class="calc-slider-label" for="slider-recycle-rate">Recycling Rate</label>
                 <span id="val-recycle-rate" class="calc-slider-value">Average</span>
               </div>
-              <input type="range" id="slider-recycle-rate" min="1" max="3" step="1" value="2">
+              <input type="range" id="slider-recycle-rate" min="1" max="3" step="1" value="2" aria-label="Recycling Rate Level">
               <div class="calc-slider-description">1: Recycle nothing, 2: Recycle glass/paper/plastic, 3: Advanced recycling + compost</div>
             </div>
           </div>
@@ -278,7 +278,7 @@
 
         <!-- Output section (Estimator Panel) -->
         <div class="card estimator-card">
-          <div class="estimator-indicator" id="estimator-emoji"><i class="fa-solid fa-cloud-sun" style="color: hsl(42, 100%, 53%);"></i></div>
+          <div class="estimator-indicator" id="estimator-emoji"><i class="fa-solid fa-cloud-sun" aria-hidden="true" style="color: hsl(42, 100%, 53%);"></i></div>
           <h2 style="font-family: var(--font-heading); margin-bottom: var(--space-xs);">Live Estimation</h2>
           <div class="estimator-big-num" id="calc-live-total">0.00</div>
           <div class="estimator-unit">Tons CO₂e / Year</div>
@@ -306,9 +306,14 @@
             </div>
           </div>
 
-          <button id="btn-save-log" class="btn-primary">
-            <i class="fa-solid fa-floppy-disk"></i> Log Habits & Save
-          </button>
+          <div style="display: flex; flex-direction: column; gap: var(--space-sm); width: 100%;">
+            <button id="btn-save-log" class="btn-primary" type="button">
+              <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Log Habits & Save
+            </button>
+            <button id="btn-export-report" class="btn-primary" type="button" style="background: hsla(var(--border-color), 0.4); border: 1px solid hsla(var(--border-color), 0.5); box-shadow: none;" title="Download details to a text file">
+              <i class="fa-solid fa-file-export" aria-hidden="true"></i> Export Carbon Report
+            </button>
+          </div>
         </div>
       </section>
 
@@ -316,13 +321,13 @@
       <section id="actions-panel" class="panel dashboard-grid">
         <!-- Main Actions List -->
         <div class="card">
-          <h2 class="card-title"><i class="fa-solid fa-list-check"></i> Active & Recommended Actions</h2>
-          <div class="actions-filters">
-            <button class="filter-btn active" data-filter="all">All Challenges</button>
-            <button class="filter-btn" data-filter="transport">Transport</button>
-            <button class="filter-btn" data-filter="energy">Energy</button>
-            <button class="filter-btn" data-filter="diet">Diet & Food</button>
-            <button class="filter-btn" data-filter="waste">Waste</button>
+          <h2 class="card-title"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active & Recommended Actions</h2>
+          <div class="actions-filters" aria-label="Filter Challenges">
+            <button class="filter-btn active" data-filter="all" type="button">All Challenges</button>
+            <button class="filter-btn" data-filter="transport" type="button">Transport</button>
+            <button class="filter-btn" data-filter="energy" type="button">Energy</button>
+            <button class="filter-btn" data-filter="diet" type="button">Diet & Food</button>
+            <button class="filter-btn" data-filter="waste" type="button">Waste</button>
           </div>
 
           <div class="challenges-list" id="challenges-grid-container">
@@ -332,9 +337,38 @@
 
         <!-- Badges & Stats Tracker Column -->
         <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
+          
+          <!-- Custom Challenge Creator Form Card -->
+          <div class="card">
+            <h2 class="card-title"><i class="fa-solid fa-circle-plus" aria-hidden="true" style="color: hsl(162, 84%, 40%);"></i> Create Custom Habit</h2>
+            <p style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-bottom: var(--space-sm);">Track a personal sustainable habit and define its estimated carbon reduction impact.</p>
+            <form id="custom-challenge-form" class="custom-challenge-form" onsubmit="event.preventDefault();">
+              <div class="form-group">
+                <label for="custom-title" class="form-label">Habit Title</label>
+                <input type="text" id="custom-title" class="form-input" placeholder="e.g. Turn down water heater" required>
+              </div>
+              <div class="form-group">
+                <label for="custom-category" class="form-label">Category</label>
+                <select id="custom-category" class="form-input" style="background: hsl(var(--bg-card));" required>
+                  <option value="energy">Home Energy</option>
+                  <option value="transport">Transportation</option>
+                  <option value="diet">Diet & Food</option>
+                  <option value="waste">Waste & Recycle</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="custom-impact" class="form-label">Estimated CO₂ Offset (kg/yr)</label>
+                <input type="number" id="custom-impact" class="form-input" placeholder="e.g. 120" min="10" max="2000" required>
+              </div>
+              <button id="btn-create-challenge" type="submit" class="btn-primary" style="padding: var(--space-sm); font-size: 0.9rem;">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Activate Custom Habit
+              </button>
+            </form>
+          </div>
+
           <!-- Achievement Card -->
           <div class="card">
-            <h2 class="card-title"><i class="fa-solid fa-award" style="color: hsl(42, 100%, 53%);"></i> Unlocked Badges</h2>
+            <h2 class="card-title"><i class="fa-solid fa-award" aria-hidden="true" style="color: hsl(42, 100%, 53%);"></i> Unlocked Badges</h2>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: var(--space-md);">Earn Eco Points (XP) by completing challenges and reducing calculations to unlock new milestones!</p>
             <div class="badges-grid" id="badges-grid-container">
               <!-- Rendered via JS -->
@@ -343,7 +377,7 @@
 
           <!-- Total Reductions Card -->
           <div class="card" style="background: linear-gradient(135deg, hsla(162, 84%, 40%, 0.08), hsla(220, 20%, 12%, 0.5));">
-            <h2 class="card-title"><i class="fa-solid fa-shield-halved" style="color: hsl(162, 84%, 40%);"></i> Reduction Impact</h2>
+            <h2 class="card-title"><i class="fa-solid fa-shield-halved" aria-hidden="true" style="color: hsl(162, 84%, 40%);"></i> Reduction Impact</h2>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
               <span style="font-size: 0.9rem; color: hsl(var(--text-secondary));">CO₂e Prevented:</span>
               <span id="stats-co2-prevented" style="font-size: 1.5rem; font-weight: 800; color: hsl(var(--accent-mint));">0.0 kg</span>
@@ -363,7 +397,7 @@
       <section id="insights-panel" class="panel dashboard-grid">
         <!-- Relative Averages Graph -->
         <div class="card">
-          <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Benchmark Comparison</h2>
+          <h2 class="card-title"><i class="fa-solid fa-chart-bar" aria-hidden="true"></i> Benchmark Comparison</h2>
           <p style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-bottom: var(--space-md);">See how your annual carbon footprint compares to global and regional targets (in Tons CO₂e/year).</p>
           
           <div class="comparison-box">
@@ -411,7 +445,7 @@
 
         <!-- Dynamic AI-powered Insights -->
         <div class="card">
-          <h2 class="card-title"><i class="fa-solid fa-lightbulb" style="color: hsl(var(--accent-yellow));"></i> Personalized Insights</h2>
+          <h2 class="card-title"><i class="fa-solid fa-lightbulb" aria-hidden="true" style="color: hsl(var(--accent-yellow));"></i> Personalized Insights</h2>
           <p style="font-size: 0.85rem; color: hsl(var(--text-secondary)); margin-bottom: var(--space-lg);">Based on your active inputs, here are key targets to optimize your environmental impact.</p>
           
           <div class="insights-list" id="insights-container">
@@ -425,6 +459,11 @@
     <!-- FOOTER -->
     <footer>
       <p>&copy; 2026 EcoPulse Carbon Dashboard. Empowering daily sustainable choices.</p>
+      <p style="margin-top: var(--space-sm); font-size: 0.8rem;">
+        <a href="test.html" style="color: hsl(var(--accent-mint)); text-decoration: none; font-weight: 600;" target="_blank">
+          <i class="fa-solid fa-vial-circle-check" aria-hidden="true"></i> Open Diagnostic Tests
+        </a>
+      </p>
     </footer>
 
   </div>

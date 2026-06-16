@@ -12,7 +12,7 @@
   --border-color: 220, 15%, 20%;
   --text-primary: 0, 0%, 96%;
   --text-secondary: 220, 10%, 65%;
-  --text-muted: 220, 8%, 45%;
+  --text-muted: 220, 12%, 62%;
 
   /* Accent Colors */
   --primary: 152, 69%, 43%;          /* Forest Emerald */
@@ -1147,3 +1147,63 @@ footer {
     justify-content: space-between;
   }
 }
+
+/* Accessibility & Form Enhancements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nav-tab:focus-visible,
+.filter-btn:focus-visible,
+.btn-primary:focus-visible,
+.btn-action:focus-visible,
+.form-input:focus-visible,
+input[type=range]:focus-visible {
+  outline: 2px solid hsl(var(--accent-mint)) !important;
+  outline-offset: 3px !important;
+}
+
+.custom-challenge-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(var(--text-secondary));
+}
+
+.form-input {
+  background: hsla(var(--border-color), 0.2);
+  border: 1px solid hsla(var(--border-color), 0.5);
+  color: hsl(var(--text-primary));
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  transition: border-color var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: hsl(var(--accent-mint));
+  background: hsla(var(--border-color), 0.4);
+}
+

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoPulse | Diagnostic Test Suite</title>
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <style>
+    body {
+      padding: var(--space-xl) var(--space-md);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .test-card {
+      width: 100%;
+      max-width: 700px;
+    }
+    .test-header {
+      border-bottom: 1px solid hsla(var(--border-color), 0.5);
+      padding-bottom: var(--space-md);
+      margin-bottom: var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .test-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .test-log-item {
+      padding: var(--space-sm) var(--space-md);
+      background: hsla(var(--border-color), 0.15);
+      border-left: 4px solid hsl(var(--text-muted));
+      border-radius: var(--radius-sm);
+      font-family: monospace;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    .test-log-item.pass {
+      border-left-color: hsl(162, 84%, 40%);
+      background: hsla(162, 84%, 40%, 0.05);
+    }
+    .test-log-item.fail {
+      border-left-color: hsl(350, 80%, 55%);
+      background: hsla(350, 80%, 55%, 0.05);
+    }
+    .test-log-icon {
+      font-size: 1.1rem;
+    }
+    .test-log-icon.pass { color: hsl(162, 84%, 40%); }
+    .test-log-icon.fail { color: hsl(350, 80%, 55%); }
+    
+    a.back-btn {
+      color: hsl(var(--text-secondary));
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: var(--space-md);
+      transition: color var(--transition-fast);
+    }
+    a.back-btn:hover {
+      color: hsl(var(--accent-mint));
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mock DOM Node elements to let app.js init perfectly -->
+  <div style="display: none;" aria-hidden="true">
+    <span id="streak-count">0</span>
+    <span id="xp-count">0</span>
+    <span id="footprint-value">0.0</span>
+    <span id="footprint-circle-progress"></span>
+    <span id="footprint-rating"></span>
+    <span id="mini-val-transport"></span>
+    <span id="mini-val-energy"></span>
+    <span id="mini-val-food"></span>
+    <span id="mini-val-waste"></span>
+    <div id="estimator-emoji"></div>
+    <div id="challenges-grid-container"></div>
+    <div id="badges-grid-container"></div>
+    <div id="insights-container"></div>
+    <div id="quick-challenges-list"></div>
+    <svg id="trend-chart-svg"><defs></defs></svg>
+    <form id="custom-challenge-form">
+      <input id="custom-title">
+      <select id="custom-category"><option value="diet"></option></select>
+      <input id="custom-impact">
+      <button id="btn-create-challenge"></button>
+    </form>
+    <button id="btn-save-log"></button>
+    <button id="btn-export-report"></button>
+    <span id="stats-co2-prevented"></span>
+    <span id="stats-equivalent-trees"></span>
+    <div id="compare-user-val"></div>
+    <div id="compare-user-bar"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; width: 100%; max-width: 700px;">
+    <a href="index.html" class="back-btn">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to Dashboard
+    </a>
+    
+    <div class="card test-card">
+      <div class="test-header">
+        <div>
+          <h1 style="font-size: 1.75rem;"><i class="fa-solid fa-vial-circle-check text-accent-mint" aria-hidden="true"></i> EcoPulse Diagnostics</h1>
+          <p style="color: hsl(var(--text-secondary)); font-size: 0.85rem; margin-top: 4px;">Automated logic & calculation verification engine</p>
+        </div>
+        <button onclick="location.reload()" class="btn-primary" style="padding: var(--space-xs) var(--space-md); font-size: 0.85rem; max-width: 120px;" type="button">
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Re-Run
+        </button>
+      </div>
+
+      <div class="test-list" id="test-results-container">
+        <!-- Logs are dynamically written here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Load App Controller -->
+  <script src="app.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById("test-results-container");
+      
+      const originalLog = console.log;
+      const originalError = console.error;
+      
+      console.log = function(msg) {
+        originalLog.apply(console, arguments);
+        
+        const item = document.createElement("div");
+        item.className = "test-log-item";
+        
+        if (msg.includes("[PASS]")) {
+          item.classList.add("pass");
+          const icon = document.createElement("i");
+          icon.className = "fa-solid fa-circle-check test-log-icon pass";
+          item.appendChild(icon);
+          item.appendChild(document.createTextNode(msg.replace("[PASS] ", "")));
+        } else if (msg.includes("COMPLETE")) {
+          item.classList.add("pass");
+          item.style.fontWeight = "bold";
+          const icon = document.createElement("i");
+          icon.className = "fa-solid fa-square-poll-vertical test-log-icon pass";
+          item.appendChild(icon);
+          item.appendChild(document.createTextNode(msg.replace("%c", "").replace("%c", "")));
+        } else if (msg.includes("STARTING")) {
+          item.style.fontWeight = "bold";
+          item.style.borderLeftColor = "hsl(190, 90%, 50%)";
+          const icon = document.createElement("i");
+          icon.className = "fa-solid fa-flask test-log-icon";
+          icon.style.color = "hsl(190, 90%, 50%)";
+          item.appendChild(icon);
+          item.appendChild(document.createTextNode(msg.replace("%c", "").replace("%c", "")));
+        } else {
+          item.appendChild(document.createTextNode(msg));
+        }
+        
+        container.appendChild(item);
+      };
+
+      console.error = function(msg) {
+        originalError.apply(console, arguments);
+        
+        const item = document.createElement("div");
+        item.className = "test-log-item fail";
+        
+        const icon = document.createElement("i");
+        icon.className = "fa-solid fa-circle-xmark test-log-icon fail";
+        item.appendChild(icon);
+        item.appendChild(document.createTextNode(String(msg).replace("[FAIL] ", "")));
+        
+        container.appendChild(item);
+      };
+
+      // Run
+      if (typeof window.runCalculationsTests === "function") {
+        window.runCalculationsTests();
+      } else {
+        const item = document.createElement("div");
+        item.className = "test-log-item fail";
+        item.textContent = "Error: runCalculationsTests function missing in app.js";
+        container.appendChild(item);
+      }
+    });
+  </script>
+</body>
+</html>
