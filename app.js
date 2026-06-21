@@ -416,11 +416,12 @@ function initCustomChallengeForm() {
 
     if (!titleEl || !categoryEl || !impactEl) return;
 
-    const titleVal = escapeHTML(titleEl.value.trim());
+    const titleVal = titleEl.value.trim();
     const categoryVal = categoryEl.value.trim();
     const impactVal = parseInt(impactEl.value, 10);
 
-    if (!titleVal || isNaN(impactVal) || impactVal < 10 || impactVal > 2000) {
+    const validCategories = ["transport", "energy", "diet", "waste"];
+    if (!titleVal || isNaN(impactVal) || impactVal < 10 || impactVal > 2000 || !validCategories.includes(categoryVal)) {
       showToast("Please enter valid challenge inputs.");
       return;
     }
@@ -1158,36 +1159,123 @@ Thank you for making sustainable daily choices!
 
 function saveState() {
   try {
-    localStorage.setItem("ecopulse_state", JSON.stringify(state));
+    if (typeof localStorage !== "undefined" && localStorage !== null) {
+      localStorage.setItem("ecopulse_state", JSON.stringify(state));
+    }
   } catch (e) {
     console.error("Failed to write to localStorage:", e);
   }
+}
+
+function validateInputs(inputs) {
+  const validated = {};
+  const schema = {
+    personal_target: { min: 1.0, max: 15.0, def: 2.0, type: "float" },
+    car_distance: { min: 0, max: 500, def: 50, type: "int" },
+    vehicle_type: { min: 1, max: 4, def: 1, type: "int" },
+    public_transit: { min: 0, max: 200, def: 10, type: "int" },
+    flights: { min: 0, max: 20, def: 2, type: "int" },
+    electricity: { min: 0, max: 300, def: 60, type: "int" },
+    clean_energy: { min: 0, max: 100, def: 0, type: "int" },
+    gas_heating: { min: 0, max: 250, def: 40, type: "int" },
+    diet_type: { min: 1, max: 5, def: 2, type: "int" },
+    food_waste: { min: 1, max: 3, def: 2, type: "int" },
+    trash_bags: { min: 0, max: 10, def: 2, type: "int" },
+    recycle_rate: { min: 1, max: 3, def: 2, type: "int" }
+  };
+
+  for (const key in schema) {
+    const rule = schema[key];
+    let val = inputs && inputs[key] !== undefined ? inputs[key] : rule.def;
+    if (rule.type === "int") {
+      val = parseInt(val, 10);
+    } else {
+      val = parseFloat(val);
+    }
+    if (isNaN(val) || val < rule.min || val > rule.max) {
+      val = rule.def;
+    }
+    validated[key] = val;
+  }
+  return validated;
 }
 
 function loadState() {
   try {
     state.challenges = JSON.parse(JSON.stringify(DEFAULT_CHALLENGES));
 
-    const raw = localStorage.getItem("ecopulse_state");
+    let raw = null;
+    try {
+      if (typeof localStorage !== "undefined" && localStorage !== null) {
+        raw = localStorage.getItem("ecopulse_state");
+      }
+    } catch (e) {
+      console.warn("Storage access denied or disabled:", e);
+    }
+
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed) {
-        state.inputs = { ...state.inputs, ...parsed.inputs };
-        state.emissions = { ...state.emissions, ...parsed.emissions };
-        state.xp = parsed.xp || 0;
-        state.streak = parsed.streak || 0;
-        state.lastLogDate = parsed.lastLogDate || null;
-        state.co2Prevented = parsed.co2Prevented || 0;
-        state.unlockedBadges = parsed.unlockedBadges || [];
-        state.history = parsed.history || [];
+      if (parsed && typeof parsed === "object") {
+        state.inputs = validateInputs(parsed.inputs);
         
-        if (parsed.challenges) {
+        if (parsed.emissions && typeof parsed.emissions === "object") {
+          state.emissions.transport = parseFloat(parsed.emissions.transport) || 0;
+          state.emissions.energy = parseFloat(parsed.emissions.energy) || 0;
+          state.emissions.food = parseFloat(parsed.emissions.food) || 0;
+          state.emissions.waste = parseFloat(parsed.emissions.waste) || 0;
+          state.emissions.total = parseFloat(parsed.emissions.total) || 0;
+        }
+        
+        state.xp = Math.max(0, parseInt(parsed.xp, 10) || 0);
+        state.streak = Math.max(0, parseInt(parsed.streak, 10) || 0);
+        
+        if (parsed.lastLogDate && typeof parsed.lastLogDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.lastLogDate)) {
+          state.lastLogDate = parsed.lastLogDate;
+        } else {
+          state.lastLogDate = null;
+        }
+        
+        state.co2Prevented = Math.max(0, parseFloat(parsed.co2Prevented) || 0);
+        
+        if (Array.isArray(parsed.unlockedBadges)) {
+          const badgeIds = BADGES.map(b => b.id);
+          state.unlockedBadges = parsed.unlockedBadges.filter(id => typeof id === "string" && badgeIds.includes(id));
+        } else {
+          state.unlockedBadges = [];
+        }
+        
+        if (Array.isArray(parsed.history)) {
+          state.history = parsed.history
+            .filter(item => item && typeof item === "object" && typeof item.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && typeof item.total === "number" && !isNaN(item.total))
+            .map(item => ({ date: item.date, total: item.total }));
+        } else {
+          state.history = [];
+        }
+        
+        if (Array.isArray(parsed.challenges)) {
           parsed.challenges.forEach(pc => {
+            if (!pc || typeof pc !== "object") return;
             const matching = state.challenges.find(c => c.id === pc.id);
             if (matching) {
-              matching.completed = pc.completed;
-            } else if (pc.id && pc.id.startsWith("custom_")) {
-              state.challenges.push(pc);
+              matching.completed = !!pc.completed;
+            } else if (pc.id && typeof pc.id === "string" && pc.id.startsWith("custom_")) {
+              const categoryVal = typeof pc.category === "string" ? pc.category : "energy";
+              const impactVal = parseInt(pc.impact, 10);
+              const titleVal = typeof pc.title === "string" ? pc.title.trim() : "Custom Challenge";
+              if (
+                ["transport", "energy", "diet", "waste"].includes(categoryVal) &&
+                !isNaN(impactVal) && impactVal >= 10 && impactVal <= 2000
+              ) {
+                state.challenges.push({
+                  id: pc.id,
+                  title: titleVal,
+                  description: typeof pc.description === "string" ? pc.description.trim() : `Personalized habit committed: offset estimated at ${impactVal} kg/year.`,
+                  category: categoryVal,
+                  impact: impactVal,
+                  xp: typeof pc.xp === "number" ? pc.xp : 150,
+                  completed: !!pc.completed
+                });
+              }
             }
           });
         }
@@ -1355,43 +1443,208 @@ window.runCalculationsTests = function() {
 
   try {
     const originalInputs = JSON.parse(JSON.stringify(state.inputs));
+    const originalHistory = JSON.parse(JSON.stringify(state.history));
+    const originalBadges = JSON.parse(JSON.stringify(state.unlockedBadges));
+    const originalXp = state.xp;
+    const originalStreak = state.streak;
+    const originalLastLog = state.lastLogDate;
+    const originalCo2 = state.co2Prevented;
+    const originalChallenges = JSON.parse(JSON.stringify(state.challenges));
 
-    // Test 1: Baseline Transport Calculation (Petrol, no public transit/flights)
-    state.inputs.car_distance = 100;
-    state.inputs.vehicle_type = 1;
+    // Reset inputs for deterministic testing
+    state.inputs.car_distance = 0;
+    state.inputs.vehicle_type = 4; // No car
     state.inputs.public_transit = 0;
     state.inputs.flights = 0;
     state.inputs.electricity = 0;
+    state.inputs.clean_energy = 0;
     state.inputs.gas_heating = 0;
-    state.inputs.diet_type = 5;
+    state.inputs.diet_type = 5; // Vegan
+    state.inputs.food_waste = 2; // Average
+    state.inputs.trash_bags = 0;
+    state.inputs.recycle_rate = 2;
+
+    // Test 1: Absolute Baseline Calculations (Vegan baseline, zero transport/energy/waste)
+    calculateEmissions(false);
+    assert(state.emissions.transport === 0.0, `Test 1.1: Transport emission zero: expected 0.0t, got ${state.emissions.transport}t`);
+    assert(state.emissions.energy === 0.0, `Test 1.2: Home Energy emission zero: expected 0.0t, got ${state.emissions.energy}t`);
+    assert(state.emissions.food === 0.90, `Test 1.3: Food emission (Vegan): expected 0.9t, got ${state.emissions.food}t`);
+    assert(state.emissions.waste === 0.0, `Test 1.4: Waste emission zero: expected 0.0t, got ${state.emissions.waste}t`);
+    assert(state.emissions.total === 0.90, `Test 1.5: Total baseline calculation correct: expected 0.9t, got ${state.emissions.total}t`);
+
+    // Test 2: Transport - Petrol Vehicle Commute
+    state.inputs.car_distance = 100;
+    state.inputs.vehicle_type = 1; // Petrol
+    calculateEmissions(false);
+    assert(state.emissions.transport === 2.08, `Test 2: Transport (100 miles Petrol): expected 2.08t, got ${state.emissions.transport}t`);
+
+    // Test 3: Transport - Hybrid Vehicle Commute
+    state.inputs.car_distance = 100;
+    state.inputs.vehicle_type = 2; // Hybrid
+    calculateEmissions(false);
+    assert(state.emissions.transport === 1.14, `Test 3: Transport (100 miles Hybrid): expected 1.14t, got ${state.emissions.transport}t`);
+
+    // Test 4: Transport - EV Vehicle Commute
+    state.inputs.car_distance = 100;
+    state.inputs.vehicle_type = 3; // EV
+    calculateEmissions(false);
+    assert(state.emissions.transport === 0.52, `Test 4: Transport (100 miles EV): expected 0.52t, got ${state.emissions.transport}t`);
+
+    // Test 5: Transport - Public Transit
+    state.inputs.car_distance = 0;
+    state.inputs.vehicle_type = 4;
+    state.inputs.public_transit = 100;
+    calculateEmissions(false);
+    assert(state.emissions.transport === 0.42, `Test 5: Transport (100 miles Public Transit): expected 0.42t, got ${state.emissions.transport}t`);
+
+    // Test 6: Transport - Flights
+    state.inputs.public_transit = 0;
+    state.inputs.flights = 5;
+    calculateEmissions(false);
+    assert(state.emissions.transport === 4.50, `Test 6: Transport (5 flights): expected 4.5t, got ${state.emissions.transport}t`);
+    state.inputs.flights = 0;
+
+    // Test 7: Home Energy - Electricity bill conversions
+    state.inputs.electricity = 120; // $120/mo
+    state.inputs.clean_energy = 0;
+    calculateEmissions(false);
+    assert(state.emissions.energy === 3.84, `Test 7: Home Energy (Electricity $120, 0% clean): expected 3.84t, got ${state.emissions.energy}t`);
+
+    // Test 8: Home Energy - Clean Energy share deduction
+    state.inputs.clean_energy = 50; // 50% clean
+    calculateEmissions(false);
+    assert(state.emissions.energy === 1.92, `Test 8: Home Energy (Electricity $120, 50% clean): expected 1.92t, got ${state.emissions.energy}t`);
+    state.inputs.electricity = 0;
+    state.inputs.clean_energy = 0;
+
+    // Test 9: Home Energy - Gas heating conversions
+    state.inputs.gas_heating = 80; // $80/mo
+    calculateEmissions(false);
+    assert(state.emissions.energy === 5.09, `Test 9: Home Energy (Gas heating $80): expected 5.09t, got ${state.emissions.energy}t`);
+    state.inputs.gas_heating = 0;
+
+    // Test 10: Diet - Heavy Meat Eater
+    state.inputs.diet_type = 1; // Heavy meat
+    state.inputs.food_waste = 2; // Average
+    calculateEmissions(false);
+    assert(state.emissions.food === 3.30, `Test 10: Diet (Heavy Meat, average waste): expected 3.3t, got ${state.emissions.food}t`);
+
+    // Test 11: Diet - Vegan with Low Waste
+    state.inputs.diet_type = 5; // Vegan
+    state.inputs.food_waste = 1; // Very low
+    calculateEmissions(false);
+    assert(state.emissions.food === 0.81, `Test 11: Diet (Vegan, low waste): expected 0.81t, got ${state.emissions.food}t`);
+
+    // Test 12: Diet - Average Meat Eater with High Waste
+    state.inputs.diet_type = 2; // Average meat
+    state.inputs.food_waste = 3; // High waste
+    calculateEmissions(false);
+    assert(state.emissions.food === 3.00, `Test 12: Diet (Average Meat, high waste): expected 3.0t, got ${state.emissions.food}t`);
     state.inputs.food_waste = 2;
+
+    // Test 13: Waste - Trash Bags (Recycle nothing)
+    state.inputs.trash_bags = 5;
+    state.inputs.recycle_rate = 1; // Recycle nothing
+    calculateEmissions(false);
+    assert(state.emissions.waste === 0.90, `Test 13: Waste (5 bags, recycle nothing): expected 0.9t, got ${state.emissions.waste}t`);
+
+    // Test 14: Waste - Trash Bags (Advanced recycling + compost)
+    state.inputs.recycle_rate = 3; // Advanced
+    calculateEmissions(false);
+    assert(state.emissions.waste === 0.45, `Test 14: Waste (5 bags, advanced recycle): expected 0.45t, got ${state.emissions.waste}t`);
     state.inputs.trash_bags = 0;
 
-    calculateEmissions(false);
-    assert(state.emissions.transport === 2.08, `Transport emission correct: expected 2.08t, got ${state.emissions.transport}t`);
-    assert(state.emissions.food === 0.90, `Food emission correct (Vegan): expected 0.9t, got ${state.emissions.food}t`);
-    assert(state.emissions.total === 2.98, `Total carbon footprint calculation correct: expected 2.98t, got ${state.emissions.total}t`);
-
-    // Test 2: Clean Energy Deduction (100% clean should reduce electricity emissions to 0)
-    state.inputs.electricity = 100;
-    state.inputs.clean_energy = 100;
-    calculateEmissions(false);
-    assert(state.emissions.energy === 0.0, `100% clean energy sets electricity emissions to 0: got ${state.emissions.energy}t`);
-
-    // Test 3: Log Streak Logic
+    // Test 15: Streak - Initial registration
     state.lastLogDate = null;
     state.streak = 0;
     updateLogStreak("2026-06-15");
-    assert(state.streak === 1, `First log sets streak to 1: got ${state.streak}`);
-    updateLogStreak("2026-06-16");
-    assert(state.streak === 2, `Consecutive day increments streak: got ${state.streak}`);
-    updateLogStreak("2026-06-18");
-    assert(state.streak === 1, `Broken streak (skipped 17th) resets to 1: got ${state.streak}`);
+    assert(state.streak === 1, `Test 15: Initial log registers streak: expected 1, got ${state.streak}`);
 
+    // Test 16: Streak - Consecutive day incrementation
+    updateLogStreak("2026-06-16");
+    assert(state.streak === 2, `Test 16: Consecutive log increments streak: expected 2, got ${state.streak}`);
+
+    // Test 17: Streak - Same-day logging limit
+    updateLogStreak("2026-06-16");
+    assert(state.streak === 2, `Test 17: Logging twice on same day preserves streak: expected 2, got ${state.streak}`);
+
+    // Test 18: Streak - Broken streak reset
+    updateLogStreak("2026-06-25");
+    assert(state.streak === 1, `Test 18: Logging after gap resets streak to 1: expected 1, got ${state.streak}`);
+
+    // Test 19: Challenge Completion - state adjustments
+    const mockChallengeId = "test_challenge_id";
+    state.challenges = [{
+      id: mockChallengeId,
+      title: "Test challenge",
+      description: "Test description",
+      category: "energy",
+      impact: 50,
+      xp: 100,
+      completed: false
+    }];
+    state.xp = 0;
+    state.co2Prevented = 0;
+    completeChallenge(mockChallengeId);
+    assert(state.challenges[0].completed === true, `Test 19.1: Challenge marked complete`);
+    assert(state.xp === 100, `Test 19.2: XP updated: expected 100, got ${state.xp}`);
+    assert(state.co2Prevented === 50, `Test 19.3: CO2 prevented updated: expected 50, got ${state.co2Prevented}`);
+
+    // Test 20: Badge Unlocking - Low Carbon
+    state.unlockedBadges = [];
+    state.emissions.total = 4.5;
+    checkBadges();
+    assert(state.unlockedBadges.includes("low_carbon"), `Test 20: Low carbon footprint unlocks Carbon Cutter: got [${state.unlockedBadges}]`);
+
+    // Test 21: Badge Unlocking - Zero Waste Hero
+    state.inputs.trash_bags = 1;
+    state.inputs.recycle_rate = 3;
+    state.unlockedBadges = [];
+    checkBadges();
+    assert(state.unlockedBadges.includes("zero_waste_hero"), `Test 21: Advanced recycling + low trash unlocks Zero Waste Hero: got [${state.unlockedBadges}]`);
+
+    // Test 22: Badge Unlocking - XP Milestone 1 (500 XP)
+    state.xp = 500;
+    state.unlockedBadges = [];
+    checkBadges();
+    assert(state.unlockedBadges.includes("xp_milestone_1"), `Test 22: Reaching 500 XP unlocks Eco Guardian: got [${state.unlockedBadges}]`);
+
+    // Test 23: Badge Unlocking - XP Milestone 2 (1200 XP)
+    state.xp = 1200;
+    state.unlockedBadges = [];
+    checkBadges();
+    assert(state.unlockedBadges.includes("xp_milestone_2"), `Test 23: Reaching 1200 XP unlocks Climate Warrior: got [${state.unlockedBadges}]`);
+
+    // Test 24: Custom Habit - Creation boundaries
+    // We test validateInputs validation schemas since custom challenges inputs go through similar assertions
+    const invalidInputs = {
+      personal_target: 99.0, // Out of max (15.0) -> should reset to default (2.0)
+      car_distance: -50,    // Out of min (0) -> should reset to default (50)
+      diet_type: "invalid", // NaN -> should reset to default (2)
+      electricity: 150      // Valid
+    };
+    const validated = validateInputs(invalidInputs);
+    assert(validated.personal_target === 2.0, `Test 24.1: Out-of-bounds float reset to default: expected 2.0, got ${validated.personal_target}`);
+    assert(validated.car_distance === 50, `Test 24.2: Negative value reset to default: expected 50, got ${validated.car_distance}`);
+    assert(validated.diet_type === 2, `Test 24.3: Malformed NaN text reset to default: expected 2, got ${validated.diet_type}`);
+    assert(validated.electricity === 150, `Test 24.4: Valid input preserved: expected 150, got ${validated.electricity}`);
+
+    // Restore original state
     state.inputs = originalInputs;
+    state.history = originalHistory;
+    state.unlockedBadges = originalBadges;
+    state.xp = originalXp;
+    state.streak = originalStreak;
+    state.lastLogDate = originalLastLog;
+    state.co2Prevented = originalCo2;
+    state.challenges = originalChallenges;
     calculateEmissions(false);
+
     console.log(`%c=== ECOPULSE TEST SUITE COMPLETE: ${passed} passed, ${failed} failed ===`, "font-weight: bold; color: hsl(162, 84%, 40%);");
   } catch (error) {
     console.error("Test Suite execution crashed:", error);
+    failed++;
   }
+
+  return { passed, failed };
 };

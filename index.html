@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
   <meta name="description" content="EcoPulse - Track, understand, and reduce your carbon footprint with custom insights and eco-challenges.">
   <title>EcoPulse | Carbon Footprint Tracker & Reducer</title>
   
@@ -470,7 +471,7 @@
     <footer>
       <p>&copy; 2026 EcoPulse Carbon Dashboard. Empowering daily sustainable choices.</p>
       <p style="margin-top: var(--space-sm); font-size: 0.8rem;">
-        <a href="test.html" style="color: hsl(var(--accent-mint)); text-decoration: none; font-weight: 600;" target="_blank">
+        <a href="test.html" style="color: hsl(var(--accent-mint)); text-decoration: none; font-weight: 600;" target="_blank" rel="noopener" aria-label="Open diagnostic test suite in a new browser tab">
           <i class="fa-solid fa-vial-circle-check" aria-hidden="true"></i> Open Diagnostic Tests
         </a>
       </p>

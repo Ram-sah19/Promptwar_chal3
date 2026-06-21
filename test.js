@@ -36,6 +36,7 @@ global.document = {
   },
   createElement: (tag) => makeElement(tag),
   createElementNS: (ns, tag) => makeElement(tag),
+  createTextNode: (text) => ({ textContent: text, appendChild: () => {} }),
   head: {
     appendChild: () => {}
   },
@@ -71,9 +72,14 @@ try {
   
   if (typeof context.runCalculationsTests === 'function') {
     console.log("Starting test suite execution...");
-    context.runCalculationsTests();
-    console.log("Calculation assertions finished successfully!");
-    process.exit(0);
+    const results = context.runCalculationsTests();
+    if (results && results.failed > 0) {
+      console.error(`\nFail: ${results.failed} assertions failed in the test suite.`);
+      process.exit(1);
+    } else {
+      console.log("\nAll calculation assertions finished successfully!");
+      process.exit(0);
+    }
   } else {
     console.error("Fail: runCalculationsTests function not found in app.js scope.");
     process.exit(1);
